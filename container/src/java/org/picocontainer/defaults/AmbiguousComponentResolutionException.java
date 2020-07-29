@@ -9,63 +9,60 @@
  *****************************************************************************/
 package org.picocontainer.defaults;
 
+import org.picocontainer.ComponentAdapter;
 import org.picocontainer.PicoIntrospectionException;
 
 import java.util.Arrays;
 
 /**
- * Exception that is thrown as part of the introspection. Raised if a PicoContainer cannot resolve a 
- * type dependency because the registered {@link org.picocontainer.ComponentAdapter}s are not 
- * distinct.  
- * 
+ * Exception that is thrown as part of the introspection. Raised if a PicoContainer cannot resolve a
+ * type dependency because the registered {@link ComponentAdapter}s are not
+ * distinct.
+ *
  * @author Paul Hammant
  * @author Aslak Helles&oslash;y
  * @author Jon Tirs&eacute;n
  * @since 1.0
  */
-public class AmbiguousComponentResolutionException extends PicoIntrospectionException {
-    private Class component;
-    private Class ambiguousDependency;
-    private final Object[] ambiguousComponentKeys;
+public final class AmbiguousComponentResolutionException extends PicoIntrospectionException {
+  private Class<?> component;
+  private final Class<?> ambiguousDependency;
+  private final Object[] ambiguousComponentKeys;
 
+  /**
+   * Construct a new exception with the ambigous class type and the ambiguous component keys.
+   *
+   * @param ambiguousDependency the unresolved dependency type
+   * @param componentKeys       the ambiguous keys.
+   */
+  public AmbiguousComponentResolutionException(Class ambiguousDependency, Object[] componentKeys) {
+    super("");
+    this.ambiguousDependency = ambiguousDependency;
+    this.ambiguousComponentKeys = new Class[componentKeys.length];
+    System.arraycopy(componentKeys, 0, ambiguousComponentKeys, 0, componentKeys.length);
+  }
 
-    /**
-     * Construct a new exception with the ambigous class type and the ambiguous component keys.
-     * 
-     * @param ambiguousDependency the unresolved dependency type
-     * @param componentKeys the ambiguous keys.
-     */
-    public AmbiguousComponentResolutionException(Class ambiguousDependency, Object[] componentKeys) {
-        super("");
-        this.ambiguousDependency = ambiguousDependency;
-        this.ambiguousComponentKeys = new Class[componentKeys.length];
-        for (int i = 0; i < componentKeys.length; i++) {
-            ambiguousComponentKeys[i] = componentKeys[i];
-        }
-    }
+  /**
+   * @return Returns a string containing the unresolved class type and the ambiguous keys.
+   */
+  @Override
+  public String getMessage() {
+    return component +
+           " has ambiguous dependency on " +
+           ambiguousDependency +
+           ", " +
+           "resolves to multiple classes: " +
+           Arrays.asList(getAmbiguousComponentKeys());
+  }
 
-    /**
-     * @return Returns a string containing the unresolved class type and the ambiguous keys. 
-     */
-    public String getMessage() {
-        StringBuffer msg = new StringBuffer();
-        msg.append(component);
-        msg.append(" has ambiguous dependency on ");
-        msg.append(ambiguousDependency);
-        msg.append(", ");
-        msg.append("resolves to multiple classes: ");
-        msg.append(Arrays.asList(getAmbiguousComponentKeys()));
-        return msg.toString();
-    }
+  /**
+   * @return Returns the ambiguous component keys as array.
+   */
+  public Object[] getAmbiguousComponentKeys() {
+    return ambiguousComponentKeys;
+  }
 
-    /**
-     * @return Returns the ambiguous component keys as array.
-     */
-    public Object[] getAmbiguousComponentKeys() {
-        return ambiguousComponentKeys;
-    }
-
-    public void setComponent(Class component) {
-        this.component = component;
-    }
+  public void setComponent(Class component) {
+    this.component = component;
+  }
 }

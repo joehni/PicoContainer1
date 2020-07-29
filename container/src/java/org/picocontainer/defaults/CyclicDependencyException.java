@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * @author Aslak Helles&oslash;y
  * @author J&ouml;rg Schaible
- * @version $Revision$
+ * @version $Revision: 1801 $
  */
 public class CyclicDependencyException extends PicoIntrospectionException {
     private final List stack;
@@ -31,7 +31,7 @@ public class CyclicDependencyException extends PicoIntrospectionException {
         this.stack = new LinkedList();
         push(element);
     }
-    
+
     /**
      * @since 1.1
      */
@@ -43,6 +43,7 @@ public class CyclicDependencyException extends PicoIntrospectionException {
         return (Class[]) stack.toArray(new Class[stack.size()]);
     }
 
+    @Override
     public String getMessage() {
         return "Cyclic dependency: " + stack.toString();
     }

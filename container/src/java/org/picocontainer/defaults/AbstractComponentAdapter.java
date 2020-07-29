@@ -1,4 +1,4 @@
-/*****************************************************************************
+/*
  * Copyright (C) PicoContainer Organization. All rights reserved.            *
  * ------------------------------------------------------------------------- *
  * The software in this package is published under the terms of the BSD      *
@@ -9,91 +9,54 @@
  *****************************************************************************/
 package org.picocontainer.defaults;
 
-import org.picocontainer.ComponentMonitor;
-import org.picocontainer.PicoVisitor;
+import org.picocontainer.ComponentAdapter;
 
 /**
  * Base class for a ComponentAdapter with general functionality.
  * This implementation provides basic checks for a healthy implementation of a ComponentAdapter.
- * It does not allow to use <code>null</code> for the component key or the implementation, 
- * ensures that the implementation is a concrete class and that the key is assignable from the 
- * implementation if the key represents a type.   
- *  
+ * It does not allow to use <code>null</code> for the component key or the implementation,
+ * ensures that the implementation is a concrete class and that the key is assignable from the
+ * implementation if the key represents a type.
+ *
  * @author Paul Hammant
  * @author Aslak Helles&oslash;y
  * @author Jon Tirs&eacute;n
- * @version $Revision$
+ * @version $Revision: 2654 $
  * @since 1.0
  */
-public abstract class AbstractComponentAdapter extends MonitoringComponentAdapter {
-    private Object componentKey;
-    private Class componentImplementation;
+public abstract class AbstractComponentAdapter implements ComponentAdapter {
+  private final Object componentKey;
+  private final Class<?> componentImplementation;
 
-    /**
-     * Constructs a new ComponentAdapter for the given key and implementation. 
-     * @param componentKey the search key for this implementation
-     * @param componentImplementation the concrete implementation
-     * @throws AssignabilityRegistrationException if the key is a type and the implementation cannot be assigned to.
-     */
-    protected AbstractComponentAdapter(Object componentKey, Class componentImplementation) throws AssignabilityRegistrationException {
-        this(componentKey, componentImplementation, new DelegatingComponentMonitor());
+  protected AbstractComponentAdapter(Object componentKey, Class<?> componentImplementation) {
+    if (componentImplementation == null) {
+      throw new NullPointerException("componentImplementation");
+    }
+    if (componentKey instanceof Class) {
+      Class<?> componentType = (Class<?>)componentKey;
+      if (!componentType.isAssignableFrom(componentImplementation)) {
+        throw new AssignabilityRegistrationException(componentType, componentImplementation);
+      }
     }
 
-    /**
-     * Constructs a new ComponentAdapter for the given key and implementation. 
-     * @param componentKey the search key for this implementation
-     * @param componentImplementation the concrete implementation
-     * @param monitor the component monitor used by this ComponentAdapter
-     * @throws AssignabilityRegistrationException if the key is a type and the implementation cannot be assigned to.
-     */
-    protected AbstractComponentAdapter(Object componentKey, Class componentImplementation, ComponentMonitor monitor) throws AssignabilityRegistrationException {
-        super(monitor);
-        if (componentImplementation == null) {
-            throw new NullPointerException("componentImplementation");
-        }
-        this.componentKey = componentKey;
-        this.componentImplementation = componentImplementation;
-        checkTypeCompatibility();
-    }
+    this.componentKey = componentKey;
+    this.componentImplementation = componentImplementation;
+  }
 
-    /**
-     * {@inheritDoc}
-     * @see org.picocontainer.ComponentAdapter#getComponentKey()
-     */
-    public Object getComponentKey() {
-        if (componentKey == null) {
-            throw new NullPointerException("componentKey");
-        }
-        return componentKey;
+  @Override
+  public final Object getComponentKey() {
+    if (componentKey == null) {
+      throw new NullPointerException("componentKey");
     }
+    return componentKey;
+  }
 
-    /**
-     * {@inheritDoc}
-     * @see org.picocontainer.ComponentAdapter#getComponentImplementation()
-     */
-    public Class getComponentImplementation() {
-        return componentImplementation;
-    }
+  @Override
+  public final Class<?> getComponentImplementation() {
+    return componentImplementation;
+  }
 
-    protected void checkTypeCompatibility() throws AssignabilityRegistrationException {
-        if (componentKey instanceof Class) {
-            Class componentType = (Class) componentKey;
-            if (!componentType.isAssignableFrom(componentImplementation)) {
-                throw new AssignabilityRegistrationException(componentType, componentImplementation);
-            }
-        }
-    }
-
-    /**
-     * @return Returns the ComponentAdapter's class name and the component's key.
-     * @see java.lang.Object#toString()
-     */
-    public String toString() {
-        return getClass().getName() + "[" + getComponentKey() + "]";
-    }
-
-    public void accept(PicoVisitor visitor) {
-        visitor.visitComponentAdapter(this);
-    }
-    
+  public final String toString() {
+    return getClass().getName() + "[" + getComponentKey() + "]";
+  }
 }
